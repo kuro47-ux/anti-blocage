@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Internet, c’est quoi ? Comprendre le DNS et garder l’accès</title>
+<style>
+:root{--bg:#0d0f14;--card:#171a22;--card2:#1e222d;--tx:#eef0f6;--mut:#9aa1b3;--ac:#7c5cff;--ac2:#27d3a2;--warn:#ffb547;--bd:#2a2f3d;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root:not([data-theme="dark"]){}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:820px;margin:0 auto;padding:0 20px}
+header{padding:56px 0 28px;text-align:left}
+.tag{display:inline-block;background:var(--card2);border:1px solid var(--bd);color:var(--ac2);padding:4px 12px;border-radius:99px;font-size:14px}
+h1{font-size:clamp(32px,7vw,52px);line-height:1.1;margin:16px 0 12px;letter-spacing:-.02em}
+h1 span{background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{font-size:clamp(24px,5vw,32px);margin:0 0 8px}
+h3{margin:0 0 6px;font-size:19px}
+p{margin:0 0 14px}
+.mut{color:var(--mut)}
+nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--ac);color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:600;font-size:16px;border:0;cursor:pointer}
+.btn.alt{background:var(--card2);border:1px solid var(--bd);color:var(--tx)}
+.btn:hover{filter:brightness(1.12)}
+section{padding:36px 0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:22px;margin:16px 0}
+.flow{display:grid;gap:10px}
+.step{display:flex;gap:14px;align-items:flex-start;background:var(--card2);border-radius:14px;padding:14px 16px}
+.n{flex:none;width:34px;height:34px;border-radius:50%;background:var(--ac);display:grid;place-items:center;font-weight:700}
+.n.g{background:var(--ac2);color:#06251b}
+.n.r{background:#ff5d73}
+code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.note{border-left:4px solid var(--warn);background:#2a2314;padding:12px 16px;border-radius:0 12px 12px 0;margin:16px 0;font-size:16px}
+.ok{border-left-color:var(--ac2);background:#0f2a24}
+.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+.dl a{display:block;text-align:center;background:var(--card2);border:1px solid var(--bd);color:var(--tx);text-decoration:none;padding:14px 8px;border-radius:12px;font-weight:600}
+.dl a:hover{border-color:var(--ac)}
+.dl small{display:block;color:var(--mut);font-weight:400;font-size:13px}
+.dns{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.addr{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:8px 10px;margin:6px 0;font-size:14px}
+.addr b{overflow-wrap:anywhere;font-weight:500}
+.addr button{flex:none;background:var(--card2);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px}
+.lbl{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin-top:10px}
+details{background:var(--card2);border:1px solid var(--bd);border-radius:14px;margin:10px 0;padding:0 16px}
+summary{cursor:pointer;padding:14px 0;font-weight:600;list-style:none}
+summary::after{content:"＋";float:right;color:var(--ac2)}
+details[open] summary::after{content:"−"}
+details ol{padding-left:20px;margin:0 0 14px}
+details li{margin:6px 0}
+kbd{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:1px 7px;font-size:14px}
+footer{padding:30px 0 50px;color:var(--mut);font-size:14px;border-top:1px solid var(--bd)}
+@media (prefers-color-scheme:light){:root{}}
+</style>
+</head>
+<body>
+<div class="w">
+
+<header>
+  <span class="tag">Guide simple · gratuit · sans jargon</span>
+  <h1>Comprendre internet,<br><span>garder ton accès.</span></h1>
+  <p class="mut">Si ton opérateur bloque certains sites, voici pourquoi ça marche comme ça, et deux façons simples de continuer à y accéder. Pas besoin d’être calé en informatique.</p>
+  <nav>
+    <a class="btn" href="#base">1 · Comprendre</a>
+    <a class="btn alt" href="#vpn">2 · VPN</a>
+    <a class="btn alt" href="#dns">3 · DNS privé</a>
+  </nav>
+</header>
+
+<section id="base">
+  <h2>🌐 La base d’internet, en 1 minute</h2>
+  <p class="mut">Internet, c’est des millions d’ordinateurs reliés entre eux. Chacun a un numéro, comme un numéro de téléphone : l’<b>adresse IP</b> (ex : <code>93.184.216.34</code>).</p>
+  <p>Problème : personne ne retient des numéros. On tape des noms (<code>instagram.com</code>). Il faut donc un <b>annuaire</b> qui traduit le nom en numéro. Cet annuaire s’appelle le <b>DNS</b>.</p>
+
+  <div class="card">
+    <h3>Ce qui se passe quand tu ouvres un site</h3>
+    <div class="flow">
+      <div class="step"><div class="n">1</div><div>Tu tapes <code>instagram.com</code>.</div></div>
+      <div class="step"><div class="n">2</div><div>Ton téléphone demande au <b>DNS</b> : « C’est quoi le numéro de ce site ? » Par défaut, c’est le DNS de ton opérateur (Orange, SFR, Free, Bouygues…) qui répond.</div></div>
+      <div class="step"><div class="n g">3</div><div>Le DNS répond avec le numéro IP. Ton appareil se connecte, et le site s’affiche.</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Comment un blocage DNS fonctionne</h3>
+    <div class="flow">
+      <div class="step"><div class="n r">✕</div><div>L’opérateur demande à son DNS de <b>ne plus répondre</b> pour certains noms. Tu demandes l’adresse, il reste muet : le site « n’existe plus » pour toi.</div></div>
+      <div class="step"><div class="n g">✓</div><div>Mais le site, lui, est toujours là, avec le même numéro IP. Il suffit de poser la question à <b>un autre annuaire</b>, ou de passer par <b>un autre chemin</b>.</div></div>
+    </div>
+    <p class="mut" style="margin:0">C’est exactement ce que font les deux solutions ci-dessous.</p>
+  </div>
+
+  <div class="note"><b>Bon à savoir :</b> le DNS privé (solution 2) marche si le blocage est <i>uniquement</i> au niveau du DNS. Si l’opérateur bloque aussi les adresses IP, il faut un VPN (solution 1). En cas de doute, commence par le VPN.</div>
+</section>
+
+<section id="vpn">
+  <h2>🛡️ Solution 1 : un VPN</h2>
+  <p>Un VPN crée un <b>tunnel chiffré</b> entre ton appareil et un serveur ailleurs. Ton opérateur ne voit plus que du trafic brouillé, et c’est le serveur du VPN qui ouvre les sites à ta place. Résultat : le blocage de l’opérateur ne s’applique plus.</p>
+
+  <div class="note">
+    <b>⚠️ Attention au choix du VPN.</b> Un VPN voit tout ce que tu fais. Beaucoup d’applis « gratuites » se paient avec tes données. Par exemple, l’extension <b>Urban VPN</b> a été épinglée fin 2025 par des chercheurs en sécurité : elle collectait des conversations avec des IA et les partageait avec une société d’analyse de données. Je ne la recommande donc pas. Voici deux options gratuites plus sûres.
+  </div>
+
+  <div class="card">
+    <h3>🟣 Proton VPN <span class="mut" style="font-weight:400">(recommandé)</span></h3>
+    <p>Gratuit, <b>sans limite de données</b>, sans pub, sans revente de données. Le forfait gratuit propose quelques pays seulement.</p>
+    <div class="dl">
+      <a href="https://protonvpn.com/download-windows" rel="noopener">🪟 Windows</a>
+      <a href="https://protonvpn.com/download-macos" rel="noopener">🍎 macOS</a>
+      <a href="https://protonvpn.com/download-linux" rel="noopener">🐧 Linux</a>
+      <a href="https://apps.apple.com/app/id1437005085" rel="noopener">📱 iPhone / iPad</a>
+      <a href="https://play.google.com/store/apps/details?id=ch.protonvpn.android" rel="noopener">🤖 Android</a>
+    </div>
+    <p class="mut" style="font-size:15px">Si un lien a changé, va sur <a href="https://protonvpn.com/download" style="color:var(--ac2)" rel="noopener">protonvpn.com/download</a>.</p>
+    <details><summary>Comment l’utiliser</summary>
+      <ol>
+        <li>Installe l’appli depuis le lien de ton système.</li>
+        <li>Crée un compte gratuit (une adresse e-mail suffit).</li>
+        <li>Choisis un serveur dans la liste <b>« Free »</b>. Le forfait gratuit ne propose pas toujours la France ; prends le pays <b>le plus proche</b> (Pays-Bas, Pologne…) pour la meilleure vitesse.</li>
+        <li>Appuie sur <b>Connexion</b>. Quand c’est vert, ouvre ton réseau social : ça passe.</li>
+      </ol>
+    </details>
+  </div>
+
+  <div class="card">
+    <h3>🟠 Cloudflare WARP <span class="mut" style="font-weight:400">(le plus simple)</span></h3>
+    <p>Appli gratuite de Cloudflare : un clic, pas de compte, pas de choix de pays à faire. Parfaite pour les débutants.</p>
+    <div class="dl">
+      <a href="https://one.one.one.one/" rel="noopener">🪟🍎🐧 PC / Mac / Linux<small>one.one.one.one</small></a>
+      <a href="https://apps.apple.com/app/id1423538627" rel="noopener">📱 iPhone / iPad</a>
+      <a href="https://play.google.com/store/apps/details?id=com.cloudflare.onedotonedotonedotone" rel="noopener">🤖 Android</a>
+    </div>
+    <details><summary>Comment l’utiliser</summary>
+      <ol>
+        <li>Installe l’appli <b>1.1.1.1</b> (c’est son nom) puis ouvre-la.</li>
+        <li>Accepte les conditions, puis appuie sur le gros interrupteur.</li>
+        <li>Si le mode propose « 1.1.1.1 » ou « WARP », choisis <b>WARP</b>.</li>
+      </ol>
+    </details>
+  </div>
+
+  <div class="note ok"><b>Pour tous les VPN :</b> installe uniquement depuis le site officiel ou le store de ton téléphone, jamais depuis un lien reçu en message.</div>
+</section>
+
+<section id="dns">
+  <h2>🔒 Solution 2 : un DNS privé</h2>
+  <p>Ici, on ne change que l’<b>annuaire</b>. Au lieu de celui de l’opérateur, ton appareil interroge un DNS public gratuit. C’est rapide et léger. Le mode « privé » chiffre en plus la question, pour que l’opérateur ne puisse pas la modifier.</p>
+
+  <div class="dns">
+    <div class="card">
+      <h3>☁️ Cloudflare</h3>
+      <div class="lbl">IPv4</div>
+      <div class="addr"><b>1.1.1.1</b><button data-c="1.1.1.1">Copier</button></div>
+      <div class="addr"><b>1.0.0.1</b><button data-c="1.0.0.1">Copier</button></div>
+      <div class="lbl">IPv6</div>
+      <div class="addr"><b>2606:4700:4700::1111</b><button data-c="2606:4700:4700::1111">Copier</button></div>
+      <div class="addr"><b>2606:4700:4700::1001</b><button data-c="2606:4700:4700::1001">Copier</button></div>
+      <div class="lbl">Nom d’hôte (Android « DNS privé »)</div>
+      <div class="addr"><b>one.one.one.one</b><button data-c="one.one.one.one">Copier</button></div>
+    </div>
+    <div class="card">
+      <h3>🔎 Google</h3>
+      <div class="lbl">IPv4</div>
+      <div class="addr"><b>8.8.8.8</b><button data-c="8.8.8.8">Copier</button></div>
+      <div class="addr"><b>8.8.4.4</b><button data-c="8.8.4.4">Copier</button></div>
+      <div class="lbl">IPv6</div>
+      <div class="addr"><b>2001:4860:4860::8888</b><button data-c="2001:4860:4860::8888">Copier</button></div>
+      <div class="addr"><b>2001:4860:4860::8844</b><button data-c="2001:4860:4860::8844">Copier</button></div>
+      <div class="lbl">Nom d’hôte (Android « DNS privé »)</div>
+      <div class="addr"><b>dns.google</b><button data-c="dns.google">Copier</button></div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">Comment faire, selon ton appareil</h3>
+
+  <details open><summary>🤖 Android (9 et plus) · le plus simple</summary>
+    <ol>
+      <li>Ouvre <b>Paramètres</b> puis <b>Réseau et Internet</b> (ou <b>Connexions</b>).</li>
+      <li>Cherche <b>DNS privé</b> (parfois dans « Paramètres de connexion avancés »).</li>
+      <li>Choisis <b>Nom d’hôte du fournisseur de DNS privé</b>.</li>
+      <li>Colle <code>one.one.one.one</code> (Cloudflare) ou <code>dns.google</code> (Google), puis <b>Enregistrer</b>.</li>
+    </ol>
+  </details>
+
+  <details><summary>🍎 iPhone / iPad</summary>
+    <ol>
+      <li>La solution la plus propre : installe l’appli <b>1.1.1.1</b> de Cloudflare (lien dans la partie VPN) et active-la.</li>
+      <li>Sinon, manuellement : <b>Réglages</b> puis <b>Wi-Fi</b>, appuie sur le <b>ⓘ</b> à côté de ton réseau.</li>
+      <li><b>Configurer le DNS</b> puis <b>Manuel</b>. Supprime les anciens serveurs et ajoute <code>1.1.1.1</code> et <code>1.0.0.1</code>.</li>
+      <li>Enregistre. Ce réglage ne vaut que pour ce réseau Wi-Fi, et il n’est pas chiffré sur iOS : en cas de blocage tenace, préfère l’appli.</li>
+    </ol>
+  </details>
+
+  <details><summary>🪟 Windows 11</summary>
+    <ol>
+      <li><b>Paramètres</b> puis <b>Réseau et Internet</b>, puis <b>Wi-Fi</b> (ou <b>Ethernet</b>) et <b>Propriétés matérielles</b>.</li>
+      <li>À côté de « Attribution du serveur DNS », clique <b>Modifier</b> puis choisis <b>Manuel</b>.</li>
+      <li>Active <b>IPv4</b>. DNS préféré : <code>1.1.1.1</code>. DNS secondaire : <code>1.0.0.1</code>.</li>
+      <li>Dans « DNS sur HTTPS », choisis <b>Activé (modèle automatique)</b>, puis <b>Enregistrer</b>.</li>
+      <li>Fais pareil avec IPv6 si tu veux (adresses ci-dessus).</li>
+    </ol>
+  </details>
+
+  <details><summary>🪟 Windows 10</summary>
+    <ol>
+      <li><kbd>Win</kbd> + <kbd>R</kbd>, tape <code>ncpa.cpl</code>, <b>Entrée</b>.</li>
+      <li>Clic droit sur ta connexion, <b>Propriétés</b>, double-clic sur <b>Protocole Internet version 4 (TCP/IPv4)</b>.</li>
+      <li>Coche <b>Utiliser l’adresse de serveur DNS suivante</b> et saisis <code>1.1.1.1</code> et <code>1.0.0.1</code>.</li>
+      <li><b>OK</b> partout. (Le chiffrement n’est pas disponible nativement sous Windows 10.)</li>
+    </ol>
+  </details>
+
+  <details><summary>🍎 macOS</summary>
+    <ol>
+      <li><b>Réglages Système</b> puis <b>Réseau</b>, clique sur ton Wi-Fi puis <b>Détails…</b></li>
+      <li>Onglet <b>DNS</b>. Clique sur <b>+</b> sous « Serveurs DNS ».</li>
+      <li>Ajoute <code>1.1.1.1</code> et <code>1.0.0.1</code> (ou <code>8.8.8.8</code> et <code>8.8.4.4</code>), puis <b>OK</b>.</li>
+    </ol>
+  </details>
+
+  <details><summary>🐧 Linux (Ubuntu et dérivés)</summary>
+    <ol>
+      <li><b>Paramètres</b> puis <b>Réseau</b>, clique sur la roue dentée de ta connexion.</li>
+      <li>Onglet <b>IPv4</b>, désactive <b>DNS automatique</b>.</li>
+      <li>Saisis <code>1.1.1.1, 1.0.0.1</code> et applique.</li>
+    </ol>
+  </details>
+
+  <details><summary>📶 Directement sur ta box (protège toute la maison)</summary>
+    <ol>
+      <li>Ouvre l’interface de ta box (souvent <code>192.168.1.1</code> ou <code>192.168.0.1</code> dans le navigateur).</li>
+      <li>Cherche <b>DNS</b> dans les réglages réseau avancés et remplace les adresses par celles de Cloudflare ou Google.</li>
+      <li>Certaines box d’opérateur ne le permettent pas : dans ce cas, règle chaque appareil.</li>
+    </ol>
+  </details>
+
+  <div class="note ok"><b>Vérifier que ça marche :</b> redémarre ton navigateur, puis essaie d’ouvrir le site. Va aussi sur <a href="https://one.one.one.one/help/" style="color:var(--ac2)" rel="noopener">one.one.one.one/help</a> : si « Using DNS over HTTPS » affiche <b>Yes</b>, c’est actif.</div>
+</section>
+
+<section>
+  <h2>🧭 Lequel choisir ?</h2>
+  <div class="card">
+    <p><b>Le site ne s’ouvre pas, rien d’autre ?</b> Essaie le <b>DNS privé</b> : 2 minutes, aucune appli.</p>
+    <p><b>Ça ne change rien, ou tu es sur un Wi-Fi public ?</b> Prends un <b>VPN</b> (Proton VPN ou WARP).</p>
+    <p style="margin:0"><b>Tu veux aussi protéger ta vie privée ?</b> Le VPN chiffre tout ton trafic, le DNS seulement les « questions ».</p>
+  </div>
+</section>
+
+<footer>
+  Guide d’information. Les noms de marques appartiennent à leurs propriétaires. Vérifie toujours les liens et n’installe que des applis issues des sites officiels ou des stores. Partage ce guide autour de toi.
+</footer>
+</div>
+<script>
+document.querySelectorAll('button[data-c]').forEach(function(b){
+  b.addEventListener('click',function(){
+    var t=b.getAttribute('data-c');
+    try{
+      navigator.clipboard.writeText(t).then(function(){b.textContent='Copié ✓';setTimeout(function(){b.textContent='Copier'},1500)},function(){b.textContent='Erreur'});
+    }catch(e){b.textContent='Erreur'}
+  });
+});
+</script>
+</body>
+</html>
